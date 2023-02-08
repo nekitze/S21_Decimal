@@ -1,24 +1,36 @@
 CC = gcc
 CFLAGS = -Wall -Werror -Wextra
 LD_S21_DECIMAL_FLAGS = -L. -ls21_decimal -lm
+LD_CHECK_FLAGS = -lcheck -lpthread -lm
 
-SOURCES = $(wildcard ./functions/*)
-OBJECTS = $(patsubst ./functions/%.c, %.o, $(SOURCES))
+SOURCES = $(wildcard arithmetics/*.c comparsion/*.c conversion/*.c other/*.c common/*.c) 
+OBJ_DIR := ./obj
+OBJECTS := $(addprefix obj/,$(SOURCES:.c=.o))
 
+HEADER = s21_decimal.h
 
-all: 
-	$(CC) $(CFLAGS) *.c *.h ./functions/*.c -o test -lm
+SUITE_SOURCES = $(wildcard tests/test*.c tests/suites/*.c)
+SUITE_OBJECTS = $(addprefix obj/,$(SUITE_SOURCES:.c=.o))
+SUITE_HEADER = tests/test.h
+
+all: s21_decimal.a
+
+test: make_dir $(SUITE_HEADER) $(SUITE_OBJECTS) s21_decimal.a 
+	gcc $(wildcard $(OBJ_DIR)/obj_test_suites) $(LD_S21_DECIMAL_FLAGS) $(LD_CHECK_FLAGS) -o $@
 
 mytest: mytest.c s21_decimal.a
 	$(CC) $< $(LD_S21_DECIMAL_FLAGS) -o $@
 
-s21_decimal.a: $(OBJECTS)
-	ar rc $@ $^
+s21_decimal.a: make_dir $(OBJECTS)
+	ar rcs $@ $(OBJ_DIR)/*.o
 	ranlib $@
 	cp s21_decimal.a libs21_decimal.a
+	
+make_dir:
+	mkdir -p $(OBJ_DIR)
 
-%.o: functions/%.c
-	$(CC) -c $^ -o $@
+$(OBJ_DIR)/%.o: %.c $(HEADER)
+	$(CC) $(CFLAGS) -c $< -o $(OBJ_DIR)/$(subst /,_,$@)
 
 clean:
-	rm -rf *.o *.a test *.gcda *.gcno html_report report.info mytest
+	rm -rf obj *.a test mytest

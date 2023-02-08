@@ -1,24 +1,27 @@
-#include <stdio.h>
 #include "s21_decimal.h"
+#include <stdio.h>
 
 int main() {
-    // s21_decimal x;
-    // x.bits[0] = 10;
-    // x.bits[1] = 0;
-    // x.bits[2] = 5;
-    // x.bits[3] = 31;
-    // set_bit(&(x.bits[0]), 31, 1);
-    // // set_bit(&x, 3, 1);
-    // // set_bit(&x, 3, 0);
-    // s2_decimal_print(x);
+  s21_decimal x;
+  s21_set_null(&x);
+  x.bits[0] = (int)S21_2IN32-1;
+  x.bits[1] = (int)S21_2IN32-1;
+  x.bits[2] = (int)S21_2IN32-1;
+  // set_pow(&x, 2);
 
-    s21_decimal a = {{1, 2, 3, 0}};
-    s21_decimal b = {{1, 2, 3, 0}};
-    set_bit(&(b.bits[3]), 31, 0);
-    s2_decimal_print(a);
-    s2_decimal_print(b);
+  s21_decimal y;
+  s21_set_null(&y);
+  y.bits[0] = (int)S21_2IN32-1;
+  y.bits[1] = (int)S21_2IN32-1;
+  y.bits[2] = (int)S21_2IN32-1;
+  // set_pow(&y, 6);
 
-    // printf("%d\n", get_bit(x.bits[3], 4));
-    printf("comparsion equal: %d\n", s21_is_equal(a, b));
-    printf("comparsion not equal: %d\n", s21_is_not_equal(a, b));
+  s21_decimal res;
+
+  int rc = s21_add(x, y, &res);
+  s21_decimal_print(x, 0);
+  s21_decimal_print(y, 0);
+  s21_decimal_print(res, 0);
+  printf("rc = %d", rc);
+
 }
