@@ -17,6 +17,7 @@ int get_pow(s21_decimal src) {
 }
 
 int set_pow(s21_decimal *dst, int value) {
+  int sign = get_sign(*dst);
   if (value < 0 || value > 28) {
     return 1;
   }
@@ -27,7 +28,7 @@ int set_pow(s21_decimal *dst, int value) {
     value /= 2;
     id++;
   }
-
+  set_sign(dst, sign);
   return 0;
 }
 
@@ -37,78 +38,31 @@ void s21_set_null(s21_decimal *src) {
   }
 }
 
-void s21_decimal_print(s21_decimal src, int level) {
-  if (level == 1) {
-    for (int bits_pos = 0; bits_pos < 4; bits_pos++) {
-    printf("bits[%d] = ", bits_pos);
-    for (int i = 31; i >= 0; i--) {
-      printf("%d", get_bit(src.bits[bits_pos], i));
-      if (i % 8 == 0) {
-        printf(" ");
-      }
-    }
-    printf("\tunsigned form: %u\n", src.bits[bits_pos]);
+int s21_normalize(s21_decimal *x1, s21_decimal *x2) {
+  int check = 0;
+  s21_decimal *x_fix;
+  int diff;
+  if (get_pow(*x1) <= get_pow(*x2)) {
+    x_fix = x1;
+    diff = get_pow(*x2) - get_pow(*x1);
+  } else {
+    x_fix = x2;
+    diff = get_pow(*x1) - get_pow(*x2);
   }
+  while (diff--) {
+    s21_decimal x = {{10, 0, 0, 0}};
+    check = s21_mul(*x_fix, x, x_fix);
+    if (check) break;
+    set_pow(x_fix, get_pow(*x_fix) + 1);
   }
-  __int128_t full_form = 0;
-  full_form += (unsigned)src.bits[2];
-  full_form *= S21_2IN32;
-  full_form += (unsigned)src.bits[1];
-  full_form *= S21_2IN32;
-  full_form += (unsigned)src.bits[0];
-  char str_full_form[1000];
-  int i = 0;
-  for (; full_form > 0; i++) {
-    str_full_form[i] = (full_form % 10) + '0';
-    full_form /= 10;
-  }
-  str_full_form[i] = '\0';
-  int l = 0, r = strlen(str_full_form) - 1;
-  while (l < r) {
-    char buff = str_full_form[l];
-    str_full_form[l] = str_full_form[r];
-    str_full_form[r] = buff;
-    l++;
-    r--;
-  }
-  printf("full form = ");
-  if (get_sign(src) == 1) {
-    printf("-");
-  }
-  if (strlen(str_full_form) == 0) {
-    printf("0");
-  }
-  for (size_t i = 0; i < strlen(str_full_form); i++) {
-    if ((size_t)get_pow(src) == strlen(str_full_form)-i) {
-      printf(".");
-    }
-    printf("%c", str_full_form[i]);
-  }
-  printf("\n\n");
-}
-
-
-void s21_normalize(s21_decimal *x1, s21_decimal *x2) {
-    s21_decimal *x_fix;
-    int diff;
-    if (get_pow(*x1) <= get_pow(*x2)) {
-      x_fix = x1;
-      diff = get_pow(*x2) - get_pow(*x1);
-    } else {
-      x_fix = x2;
-      diff = get_pow(*x1) - get_pow(*x2);
-    }
-    while (diff--) {
-      s21_mul10(x_fix);
-      set_pow(x_fix, get_pow(*x_fix) + 1);
-    }
+  return check;
 }
 
 unsigned int s21_as_uint(int x) { return *((unsigned int *)&x); }
 
 int s21_as_int(unsigned int x) { return *((int *)&x); }
 
-void s21_drop_last_digit(s21_decimal *src) {
+int s21_drop_last_digit(s21_decimal *src) {
   unsigned long long last, div;
 
   last = s21_as_uint(src->bits[2]);
@@ -122,4 +76,5 @@ void s21_drop_last_digit(s21_decimal *src) {
   last = s21_as_uint(src->bits[0]) + div * S21_2IN32;
   div = last % 10;
   src->bits[0] = s21_as_int((unsigned int)(last / 10));
+  return (int)div;
 }

@@ -1,14 +1,14 @@
 #include "../test.h"
 
 START_TEST(set_pow_1) {
-  s21_decimal x;
+  s21_decimal x = {{0}};
   set_pow(&x, 5);
   ck_assert_int_eq(get_pow(x), 5);
 }
 END_TEST
 
 START_TEST(set_sign_1) {
-  s21_decimal x;
+  s21_decimal x = {{0}};
   set_sign(&x, 1);
   ck_assert_int_eq(get_sign(x), 1);
 }

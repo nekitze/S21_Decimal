@@ -9,9 +9,9 @@ int get_bit(int src, int pos) {
 }
 
 void set_bit(int *dst, int pos, int value) {
-  if (value) {  
+  if (value) {
     *dst |= (1 << pos);
-  } else {  
+  } else {
     *dst &= ~(1 << pos);
   }
 }
